@@ -1,0 +1,9 @@
+# Copy to config/paths.local.yaml (not tracked) and set the folders of the external tools on your machine.
+# Entries here replace those of config/paths.yaml; any other key can be overridden the same way.
+scfm:
+  uce_dir: /path/to/UCE                                   # https://github.com/snap-stanford/UCE
+  geneformer_model: /path/to/Geneformer/Geneformer-V2-104M
+  scfoundation_dir: /path/to/scFoundation/model           # https://github.com/biomap-research/scFoundation
+  scgpt_model: /path/to/scGPT_human
+benchmark:
+  contacttracing_tutorial: /path/to/ContactTracing_tutorial   # https://github.com/LaughneyLab/ContactTracing_tutorial

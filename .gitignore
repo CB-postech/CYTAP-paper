@@ -1,0 +1,11 @@
+# data, models and outputs (Zenodo / regenerated)
+data/
+models/
+results/
+work/
+external/
+config/paths.local.yaml
+__pycache__/
+*.pyc
+.Rhistory
+.ipynb_checkpoints/

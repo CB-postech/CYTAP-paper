@@ -1,0 +1,15 @@
+data:
+  type: cell
+  target: PBS
+  condition: treatment
+  path: parsePBMC_nofold_data_pca100.h5ad  # set per run in train_cellot.sh
+
+datasplit:
+  groupby: cytokine
+  name: train_test
+  test_size: 0.2
+  random_state: 0
+
+dataloader:
+  batch_size: 1024
+  shuffle: true

@@ -1,0 +1,87 @@
+# Paths used by all scripts, relative to work_dir (relative work_dir: relative to the repository root).
+# Machine-specific entries (external tool folders) go in config/paths.local.yaml, which is read on top of this
+# file (see config/paths.local.example.yaml). With the Zenodo files only, point data.* to data/query_slim/.
+work_dir: "."
+results: results                          # result tables written by the scripts
+
+model: models/cytap_state_comp_v1.pt      # CYTAP model (Comp input)
+ablation_models:                          # trained on all 12 donors with the other inputs (01_training)
+  raw: models/ablation/cytap_state_raw_v1.pt
+  adj: models/ablation/cytap_state_adj_v1.pt
+  dev: models/ablation/cytap_state_dev_v1.pt
+  hvg: models/ablation/cytap_hvg_v1.pt
+cv_models: models/cv_ablation             # donor-held-out 4-fold models {Input}_Fold{k}.pt(h) (06_input_ablation)
+
+parse:                                    # training data: Parse 10M PBMC cytokine screen
+  counts: data/parse/Parse_10M_PBMC_cytokines.h5ad   # raw counts (download)
+  normalized: data/parse/parse_normalized.h5ad       # log-normalized (00_preprocessing)
+  emb: data/parse/parse_state_emb.h5ad               # + obsm['X_state'] (State SE-600M)
+  degs: data/reference/DEGs_20260203.csv             # Parse DEG table (DEGs.csv of the download page)
+  hvg_npz: data/parse/parse_hvg.npz                  # HVG input of the ablation (00_preprocessing)
+  hvg_genes: data/parse/hvg_2058_genes.txt
+
+data:                                     # query datasets, log-normalized with obsm['X_state'] (00_preprocessing)
+  ifnb: data/query/IFNb_state_emb.h5ad
+  macrophage: data/query/macrophage_state_emb.h5ad
+  gcsf: data/query/GCSF_bm_state_emb.h5ad
+  il7: data/query/IL7_tcell_state_emb.h5ad
+  combat: data/query/combat/combat_state_emb.h5ad                    # selected donors/samples (CYTAP input)
+  combat_unfiltered: data/query/combat/combat_state_emb_unfiltered.h5ad
+  combat_expression: data/query/combat/combat_expression.h5ad        # same cells, log-normalized expression
+  combat_expression_unfiltered: data/query/combat/combat_expression_unfiltered.h5ad
+  combat_luminex: data/query/combat/Oxford data_output_combined.xlsx  # COMBAT plasma Luminex (Zenodo 6120249)
+  gcsf_counts: data/query/G-CSF_BM/bm.h5ad                           # raw counts in .raw.X
+  gcsf_seurat: data/query/G-CSF_BM/bm_seurat.rds
+  il7_counts: data/query/IL7_Tcell/IL7_tcell_combined_annot_state_emb_with_counts.h5ad   # layers['counts']
+  il7_seurat: data/query/IL7_Tcell/seuratObj.rds
+  uce_gcsf: data/scupa/bm_uce_adata.h5ad                             # UCE embeddings for Scupa
+  uce_il7: data/scupa/IL7_tcell_combined_for_uce_uce_adata.h5ad
+
+reference:                                # curated tables (Zenodo) and benchmark resources
+  cytokine_ligand_map: data/reference/cytokine_ligand_map.csv        # CYTAP cytokine -> ligand genes
+  cytokine_receptors: data/reference/Parse-PBMC_cytokine_receptors.xlsx   # CYTAP cytokine -> receptor genes
+  irea_signatures: data/reference/Cytokine_Signatures_Human.xlsx     # Immune Dictionary (IREA)
+  hucira_dir: data/reference/huCIRA                                  # Human Cytokine Dictionary cache
+  nichenet_dir: data/reference/nichenet                              # NicheNet v2 prior (Zenodo 7074291), downloaded once
+
+inference:                                # CYTAP predictions (02_inference)
+  ifnb: results/inference/IFNb_cytap.h5ad
+  macrophage: results/inference/macrophage_cytap.h5ad
+  gcsf: results/inference/GCSF_bm_cytap.h5ad
+  il7: results/inference/IL7_tcell_cytap.h5ad
+  combat_pooled: results/inference/combat_cytap_pooled.h5ad
+  combat_cellot: results/inference/combat_cytap_cellot.h5ad
+
+cellot:                                   # CellOT counterfactual controls (05_cellot)
+  maps: results/cellot                    # maps in cytap format {run}_cellot.pt (input of cytap)
+  datasets: models/cellot/datasets        # CellOT inputs: 100-PC data and PCA models
+  results: models/cellot/results          # CellOT training outputs (config.yaml, cache/model.pt)
+  parse_runs:                             # Parse-PBMC: one map per CV fold (held-out donors) and one on all donors
+    1: parsePBMC_f1
+    2: parsePBMC_f2
+    3: parsePBMC_f3
+    4: parsePBMC_f4
+    nofold: parsePBMC_nofold
+  combat_runs:                            # COMBAT: one map per severity group -> HV
+    COVID_MILD: combat/covid_mild_to_hv_pc100
+    COVID_SEV: combat/covid_sev_to_hv_pc100
+    COVID_CRIT: combat/covid_crit_to_hv_pc100
+
+scfm:                                     # other single-cell foundation models (08_embedding_comparison)
+  chunks: work/uce_chunks                 # 250,000-cell chunks of parse.counts
+  embeddings:                             # rows in the order of parse.counts
+    UCE: data/scfm/parse_uce.npy                    # 1,280-d, 4-layer model
+    Geneformer: data/scfm/parse_geneformer.npy      # 768-d, V2-104M, CLS token
+    scFoundation: data/scfm/parse_scfoundation.npy  # 3,072-d
+    scGPT: data/scfm/parse_scgpt.h5ad               # obsm['X_scGPT'], 512-d
+  geneformer_work: work/geneformer
+  scfoundation_work: work/scfoundation
+  uce_dir: external/uce/UCE                         # set in paths.local.yaml
+  geneformer_model: external/geneformer/Geneformer-V2-104M
+  scfoundation_dir: external/scfoundation/model
+  scgpt_model: external/scgpt/scGPT_human
+
+benchmark:                                # outputs of 09_benchmark_parse and 10_benchmark_in_vivo
+  parse_dir: results/benchmark_parse
+  in_vivo_dir: results/benchmark_in_vivo
+  contacttracing_tutorial: external/contacttracing/ContactTracing_tutorial   # set in paths.local.yaml

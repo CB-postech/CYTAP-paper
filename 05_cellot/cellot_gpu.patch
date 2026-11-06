@@ -1,0 +1,79 @@
+# Device placement for CellOT training on GPU (https://github.com/bunnech/cellot, commit 522d2b9); the algorithm is unchanged.
+# Apply in the CellOT repository: patch -p1 < cellot_gpu.patch
+diff --git a/cellot/models/cellot.py b/cellot/models/cellot.py
+index 114dfce..c6942a0 100644
+--- a/cellot/models/cellot.py
++++ b/cellot/models/cellot.py
+@@ -52,6 +52,10 @@ def load_networks(config, **kwargs):
+     f = ICNN(**fkwargs)
+     g = ICNN(**gkwargs)
+ 
++    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
++    f = f.to(device)
++    g = g.to(device)
++
+     if "verbose" in FLAGS and FLAGS.verbose:
+         print(g)
+         print(kwargs)
+diff --git a/cellot/train/train.py b/cellot/train/train.py
+index 64c8484..91ee6f4 100644
+--- a/cellot/train/train.py
++++ b/cellot/train/train.py
+@@ -42,6 +42,8 @@ def load_item_from_save(path, key, default):
+ 
+ 
+ def train_cellot(outdir, config):
++    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')  # GPU if available
++
+     def state_dict(f, g, opts, **kwargs):
+         state = {
+             "g_state": g.state_dict(),
+@@ -54,8 +56,8 @@ def train_cellot(outdir, config):
+         return state
+ 
+     def evaluate():
+-        target = next(iterator_test_target)
+-        source = next(iterator_test_source)
++        target = next(iterator_test_target).to(device)
++        source = next(iterator_test_source).to(device)
+         source.requires_grad_(True)
+         transport = g.transport(source)
+ 
+@@ -65,7 +67,7 @@ def train_cellot(outdir, config):
+             fl = compute_loss_f(f, g, source, target, transport).mean()
+             dist = compute_w2_distance(f, g, source, target, transport)
+             mmd = losses.compute_scalar_mmd(
+-                target.detach().numpy(), transport.detach().numpy()
++                target.detach().cpu().numpy(), transport.detach().cpu().numpy()
+             )
+ 
+         # log to logger object
+@@ -84,6 +86,7 @@ def train_cellot(outdir, config):
+     logger = Logger(outdir / "cache/scalars")
+     cachedir = outdir / "cache"
+     (f, g), opts, loader = load(config, restore=cachedir / "last.pt")
++    f, g = f.to(device), g.to(device)
+     iterator = cast_loader_to_iterator(loader, cycle_all=True)
+ 
+     n_iters = config.training.n_iters
+@@ -121,9 +124,9 @@ def train_cellot(outdir, config):
+             iterator_test_target = iterator.test.target
+             iterator_test_source = iterator.test.source
+ 
+-        target = next(iterator_train_target)
++        target = next(iterator_train_target).to(device)
+         for _ in range(config.training.n_inner_iters):
+-            source = next(iterator_train_source).requires_grad_(True)
++            source = next(iterator_train_source).to(device).requires_grad_(True)
+ 
+             opts.g.zero_grad()
+             gl = compute_loss_g(f, g, source).mean()
+@@ -133,7 +136,7 @@ def train_cellot(outdir, config):
+             gl.backward()
+             opts.g.step()
+ 
+-        source = next(iterator_train_source).requires_grad_(True)
++        source = next(iterator_train_source).to(device).requires_grad_(True)
+ 
+         opts.f.zero_grad()
+         fl = compute_loss_f(f, g, source, target).mean()
