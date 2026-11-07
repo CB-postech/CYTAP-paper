@@ -2,7 +2,8 @@
 
 Analysis code of *CYTAP: inferring cytokine responses in single cells from adapted foundation model embeddings*
 (Jeong & Kim, 2026; journal and DOI to be added). The method is the [`cytap`](https://github.com/CB-postech/CYTAP)
-package; data, models and result tables are on Zenodo (DOI to be added).
+package; data, models and result tables are on Zenodo
+([10.5281/zenodo.24012391](https://doi.org/10.5281/zenodo.24012391)).
 
 ## Setup
 
@@ -55,7 +56,7 @@ The State SE-600M model ([Arc Institute](https://github.com/ArcInstitute/state))
 
 ## Zenodo record
 
-Unpack in the repository root (`tar -xf <file>`):
+[10.5281/zenodo.24012391](https://doi.org/10.5281/zenodo.24012391). Unpack in the repository root (`tar -xf <file>`):
 
 | File | Content |
 |---|---|
