@@ -2,7 +2,8 @@
 
 prepare  State embeddings reduced to 100 principal components (input of train_cellot.sh).
          Parse-PBMC: one dataset per CV fold (cells of that fold's three held-out donors) and one with all donors
-         ("nofold"); condition column 'treatment' (cytokine / PBS). COMBAT: HV, COVID_MILD, COVID_SEV and
+         ("nofold"); condition column 'treatment' (cytokine / PBS). With --target train (folds 1-4): the
+         held-out donors' cytokine cells and the training donors' PBS cells (runs parse_runs_trainctrl). COMBAT: HV, COVID_MILD, COVID_SEV and
          COVID_CRIT cells of data.combat; condition column 'Source'.
          -> {cellot.datasets}/{run}_data_pca100.h5ad (COMBAT: combat_pca100.h5ad) and {run}_pca_model_100d.pkl
 export   trained CellOT maps (config.yaml + cache/model.pt) and their PCA model -> one cytap CellOT file per run,
@@ -10,8 +11,10 @@ export   trained CellOT maps (config.yaml + cache/model.pt) and their PCA model 
          07_variance_partitioning (cytap environment; CellOT itself is not needed).
 
 python 05_cellot/cellot_maps.py prepare parse [--runs 1 2 3 4 nofold]
+python 05_cellot/cellot_maps.py prepare parse --target train --runs 1 2 3 4
 python 05_cellot/cellot_maps.py prepare combat
 python 05_cellot/cellot_maps.py export parse
+python 05_cellot/cellot_maps.py export parse --target train --runs 1 2 3 4
 python 05_cellot/cellot_maps.py export combat
 
 The published maps are on Zenodo (results/cellot/); the PCA models were fitted without a fixed random_state, so
@@ -33,13 +36,16 @@ N_PCS = 100
 COMBAT_SOURCES = ["HV", "COVID_MILD", "COVID_SEV", "COVID_CRIT"]
 
 
-def run_names(dataset, runs):
+def run_names(dataset, runs, target="heldout"):
     if dataset == "combat":
         return {"combat": None}
-    return {CFG["cellot"]["parse_runs"][r if r == "nofold" else int(r)]: r for r in runs}
+    if target == "train":
+        assert "nofold" not in runs, "--target train is defined for the CV folds only"
+    key = "parse_runs_trainctrl" if target == "train" else "parse_runs"
+    return {CFG["cellot"][key][r if r == "nofold" else int(r)]: r for r in runs}
 
 
-def prepare(dataset, runs):
+def prepare(dataset, runs, target="heldout"):
     from sklearn.decomposition import PCA
     d = path("cellot", "datasets")
     d.mkdir(parents=True, exist_ok=True)
@@ -59,8 +65,13 @@ def prepare(dataset, runs):
         src = ad.read_h5ad(path("parse", "emb"), backed="r")
         obs = src.obs[["treatment", "cytokine", "donor", "cell_type"]].copy()
         Z = np.asarray(src.obsm["X_state"][:], dtype=np.float32)
-        for name, run in run_names("parse", runs).items():
-            keep = np.ones(len(obs), bool) if run == "nofold" else obs["donor"].isin(FOLD_DONORS[int(run)]).to_numpy()
+        pbs = (obs["treatment"] == "PBS").to_numpy()
+        for name, run in run_names("parse", runs, target).items():
+            if run == "nofold":
+                keep = np.ones(len(obs), bool)
+            else:
+                held = obs["donor"].isin(FOLD_DONORS[int(run)]).to_numpy()
+                keep = (held & ~pbs) | (~held & pbs) if target == "train" else held
             write(Z[keep], obs[keep], name, f"{name}_data_pca100.h5ad")
     else:
         src = ad.read_h5ad(path("data", "combat"))
@@ -70,10 +81,10 @@ def prepare(dataset, runs):
         write(np.asarray(src.obsm["X_state"], dtype=np.float32), obs, "combat", "combat_pca100.h5ad")
 
 
-def export(dataset, runs):
+def export(dataset, runs, target="heldout"):
     from cytap.counterfactual import CellOT
     d, res = path("cellot", "datasets"), path("cellot", "results")
-    for name in run_names(dataset, runs):
+    for name in run_names(dataset, runs, target):
         f = path("cellot", "maps") / f"{name}_cellot.pt"
         if f.exists():
             print(f"skip (exists): {f}")
@@ -93,5 +104,7 @@ p = argparse.ArgumentParser()
 p.add_argument("step", choices=["prepare", "export"])
 p.add_argument("dataset", choices=["parse", "combat"])
 p.add_argument("--runs", nargs="+", default=["1", "2", "3", "4", "nofold"])
+p.add_argument("--target", choices=["heldout", "train"], default="heldout",
+               help="Parse-PBMC folds: PBS cells of the held-out donors or of the training donors")
 a = p.parse_args()
-(prepare if a.step == "prepare" else export)(a.dataset, a.runs)
+(prepare if a.step == "prepare" else export)(a.dataset, a.runs, a.target)

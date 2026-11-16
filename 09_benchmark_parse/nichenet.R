@@ -3,7 +3,7 @@
 # genes detected in >= 5% of its cells, both restricted to the ligand-target matrix (human, Zenodo 7074291).
 # Candidate ligands = ligands of the CYTAP cytokines (cytokine_ligand_map.csv; IL8 -> CXCL8) present in
 # the prior. Ligands ranked by corrected AUPR; true_rank = best rank of the cytokine's ligands.
-# Conditions with < 10 genes after filtering are kept as misses ("no_geneset").
+# Conditions with < 10 genes after filtering are not scored ("no_geneset", true_rank NA; not evaluable in recall_summary.R).
 # Output: NicheNet_output/nichenet_top10_results.csv, candidate_ligands.txt (ranking pool)
 #   Rscript 09_benchmark_parse/nichenet.R
 source("R/paths.R")

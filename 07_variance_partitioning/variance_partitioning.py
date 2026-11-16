@@ -15,7 +15,9 @@ subsets; Residual = TSS - SS(full model). Reported in embedding units (SS_abs) a
 own TSS. SS is additive over feature blocks, so
 SS(Comp) = SS(Adj) + SS(Dev) is checked as a consistency test.
 
-Output: results/variance_partitioning/{set}/vp5_hierarchical_SS.csv,
+Centroid PCA (Fig. 2d): PC1/PC2 of each representation's centroids (sklearn PCA, 50 components, random_state 42).
+
+Output: results/variance_partitioning/{set}/vp5_hierarchical_SS.csv, centroid_pca.csv,
         vp5_permutation_null.csv (--n-perm: cell-type labels permuted within donor x treatment),
         centroids/centroid_{Condition}.npz (reused when present), cellot/counterfactual_diagnostics.csv
 
@@ -36,6 +38,7 @@ import numpy as np
 import pandas as pd
 import patsy
 from scipy.linalg import lstsq
+from sklearn.decomposition import PCA
 
 from cytap.features import group_means
 from paper_utils import cellot_map, compose_input, counterfactual_centroids, load_parse, out
@@ -214,9 +217,13 @@ def main():
     args = ap.parse_args()
 
     cdir = out("variance_partitioning", args.set, "centroids", "x").parent
-    hp_rows, perm_rows = [], []
+    hp_rows, perm_rows, pcs = [], [], []
     for cond, (Y, meta) in load_centroids(args.set, cdir).items():
         hp_rows += partition(Y, meta, cond)
+        pca = PCA(n_components=50, random_state=42)
+        Z = pca.fit_transform(Y)
+        pcs.append(meta.assign(Condition=cond, PC1=Z[:, 0], PC2=Z[:, 1],
+                               PC1_var=pca.explained_variance_ratio_[0], PC2_var=pca.explained_variance_ratio_[1]))
         if args.n_perm:
             rng = np.random.default_rng(args.seed)  # same permutations for every condition
             for p in range(args.n_perm):
@@ -226,6 +233,7 @@ def main():
                     rec[f"HP_{c}"] = next(x["SS_abs"] for x in php if x["Component"] == c)
                 perm_rows.append(rec)
 
+    pd.concat(pcs).to_csv(out("variance_partitioning", args.set, "centroid_pca.csv"), index=False)
     df_hp = pd.DataFrame(hp_rows)
     df_hp.to_csv(out("variance_partitioning", args.set, "vp5_hierarchical_SS.csv"), index=False)
     if perm_rows:

@@ -62,6 +62,11 @@ cellot:                                   # CellOT counterfactual controls (05_c
     3: parsePBMC_f3
     4: parsePBMC_f4
     nofold: parsePBMC_nofold
+  parse_runs_trainctrl:                   # Parse-PBMC: held-out donors' cytokine cells -> training donors' PBS cells
+    1: parsePBMC_f1_trainctrl
+    2: parsePBMC_f2_trainctrl
+    3: parsePBMC_f3_trainctrl
+    4: parsePBMC_f4_trainctrl
   combat_runs:                            # COMBAT: one map per severity group -> HV
     COVID_MILD: combat/covid_mild_to_hv_pc100
     COVID_SEV: combat/covid_sev_to_hv_pc100

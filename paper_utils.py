@@ -185,10 +185,14 @@ def load_hvg():
     return X, y, donor, ct, classes
 
 
-def cellot_map(run):
-    """cytap CellOT map of a Parse-PBMC run (1-4, 'nofold') or 'combat' (05_cellot/cellot_maps.py export)."""
+def cellot_map(run, target="heldout"):
+    """cytap CellOT map of a Parse-PBMC run (1-4, 'nofold') or 'combat' (05_cellot/cellot_maps.py export).
+
+    target (folds 1-4): PBS cells the map was trained onto, of the held-out donors ('heldout') or of the training
+    donors ('train')."""
     from cytap.counterfactual import CellOT
-    name = "combat" if run == "combat" else CFG["cellot"]["parse_runs"][run if run == "nofold" else int(run)]
+    runs = CFG["cellot"]["parse_runs_trainctrl" if target == "train" else "parse_runs"]
+    name = "combat" if run == "combat" else runs[run if run == "nofold" else int(run)]
     return CellOT.load(path("cellot", "maps") / f"{name}_cellot.pt")
 
 
@@ -210,10 +214,11 @@ def counterfactual_centroids(cot, Z, rows, keys: pd.MultiIndex, source="cytokine
     return {tuple(u): (S[i] / N[i]).astype(dtype) for i, u in enumerate(uniq)}
 
 
-def fold_references(Z, obs, fold, cot=None):
+def fold_references(Z, obs, fold, cot=None, ck_from="train"):
     """Control references for the held-out donors of one CV fold.
 
-    c_k: PBS cells of cell type k from the training donors (as in training).
+    c_k: PBS cells of cell type k from the training donors (ck_from="train", as in training) or from the
+         held-out donors (ck_from="query").
     c_{d,k}: the held-out donor's own PBS cells (c_k if none).
     c_hat_{d,k}: CellOT counterfactual controls of that donor's cytokine cells of cell type k (c_k if none).
     Returns the held-out cytokine cells (rows) with small centroid tables and per-cell indices:
@@ -230,7 +235,8 @@ def fold_references(Z, obs, fold, cot=None):
         return Z[idx].mean(axis=0) if len(idx) else fallback
 
     zero = np.zeros(Z.shape[1], dtype=np.float32)
-    ck = {c: mean_or((ct == c) & pbs & ~test, zero) for c in cts}
+    ref_donors = test if ck_from == "query" else ~test
+    ck = {c: mean_or((ct == c) & pbs & ref_donors, zero) for c in cts}
     cdk = {(d, c): mean_or((donor == d) & (ct == c) & pbs, ck[c]) for d in FOLD_DONORS[fold] for c in cts}
     rows = np.flatnonzero(~pbs & test)
     cf = {}
