@@ -17,7 +17,7 @@ python 05_cellot/cellot_maps.py export parse
 python 05_cellot/cellot_maps.py export parse --target train --runs 1 2 3 4
 python 05_cellot/cellot_maps.py export combat
 
-The published maps are on Zenodo (results/cellot/); the PCA models were fitted without a fixed random_state, so
+The published maps are on Zenodo (results/cellot/); the published PCA models were fitted before random_state was fixed, so
 retraining gives similar but not identical maps.
 """
 import argparse
