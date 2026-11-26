@@ -1,6 +1,6 @@
 # CYTAP-paper
 
-Analysis code of *CYTAP: inferring cytokine responses in single cells from adapted foundation model embeddings*
+Analysis code of *Task-aligned foundation model representations enable single-cell cytokine response inference*
 (Jeong & Kim, 2026; journal and DOI to be added). The method is the [`cytap`](https://github.com/CB-postech/CYTAP)
 package; data, models and result tables are on Zenodo
 ([10.5281/zenodo.24012391](https://doi.org/10.5281/zenodo.24012391)).
