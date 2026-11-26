@@ -12,7 +12,7 @@ license: MIT
 repository-code: "https://github.com/CB-postech/CYTAP-paper"
 preferred-citation:
   type: article
-  title: "CYTAP: inferring cytokine responses in single cells from adapted foundation model embeddings"
+  title: "Task-aligned foundation model representations enable single-cell cytokine response inference"
   authors:
     - family-names: Jeong
       given-names: Yujin L.
