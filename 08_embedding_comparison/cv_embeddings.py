@@ -10,8 +10,6 @@ Same folds, labels, classifier, hyperparameters and metrics as the State input a
 
 c_k: PBS centroid of cell type k over the training donors; c_{d,k}: each donor's own PBS centroid
 (c_k if none). Cells whose embedding is not finite are excluded.
-Raw inputs are held in memory (TensorDataset). For adj/dev/comp the 3,072-d scFoundation inputs
-would not fit in RAM, so z is gathered per batch and the centroids are subtracted on the GPU.
 
 python 08_embedding_comparison/cv_embeddings.py --embeddings UCE Geneformer scFoundation scGPT --inputs raw
 python 08_embedding_comparison/cv_embeddings.py --embeddings scFoundation --inputs adj dev comp

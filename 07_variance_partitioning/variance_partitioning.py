@@ -3,17 +3,15 @@
 Centroids: each representation is summarised as centroids Y (one row per donor x cell type x cytokine, cytokine-
 treated cells of all 12 donors). c_k: PBS cells of cell type k; c_dk: donor d's own PBS cells (c_k if none);
 c_hat_dk: mean CellOT counterfactual control of the donor's cytokine cells (map trained on all donors,
-cellot.parse_runs.nofold; c_k if none). All cells of a group share these references, so the centroid of a
-representation is the same transform applied to the group's mean embedding.
+cellot.parse_runs.nofold; c_k if none).
   --set inputs : Baseline, Donor_Only, Sub, Donor_Sub (= Raw, Adj, Dev, Comp)
   --set cellot : Raw and Adj / Dev / Comp with true, pooled (c_dk := c_k) and CellOT references
 
-Partitioning: Y is regressed on the full-factorial, sum-coded design cell_type * treatment + donor * cell_type.
+Partitioning: Y is regressed on the sum-coded fixed-effect design cell_type * treatment + donor * cell_type.
 Components = term blocks (Cell_type, Donor, Donor_x_Cell_type, Treatment, Treatment_x_Cell_type); independent
 contributions are the hierarchical-partitioning (Shapley) averages of the explained SS over all 2^5 component
 subsets; Residual = TSS - SS(full model). Reported in embedding units (SS_abs) and as % of the representation's
-own TSS. SS is additive over feature blocks, so
-SS(Comp) = SS(Adj) + SS(Dev) is checked as a consistency test.
+own TSS. SS(Comp) = SS(Adj) + SS(Dev) is checked as a consistency test.
 
 Centroid PCA (Fig. 2d): PC1/PC2 of each representation's centroids (sklearn PCA, 50 components, random_state 42).
 

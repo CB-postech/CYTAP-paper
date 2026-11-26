@@ -76,7 +76,7 @@ rank_activity <- function(act, cell_type, map_col, map) {
   if (map_col == "CytoSig") {   # one signature can stand for several cytokines (IFN1, IFNL, ...): "a/b"
     long <- tibble(signature = strsplit(mp[[map_col]], ";"), Cytokines = mp$Cytokines) %>% unnest(signature)
     lookup <- tapply(long$Cytokines, long$signature, function(x) paste(unique(x), collapse = "/"))
-  } else {                      # SecAct, as in the original analysis: whole map entry, first cytokine
+  } else {                      # SecAct: whole map entry, first cytokine
     if (any(grepl(";", mp[[map_col]])))
       message("SecAct entries with several signatures (not split here): ",
               paste(mp$Cytokines[grepl(";", mp[[map_col]])], collapse = ", "))

@@ -1,10 +1,10 @@
 """CellOT counterfactual controls: inputs for CellOT training, and conversion of the trained maps for cytap.
 
 prepare  State embeddings reduced to 100 principal components (input of train_cellot.sh).
-         Parse-PBMC: one dataset per CV fold (cells of that fold's three held-out donors) and one with all donors
-         ("nofold"); condition column 'treatment' (cytokine / PBS). With --target train (folds 1-4): the
-         held-out donors' cytokine cells and the training donors' PBS cells (runs parse_runs_trainctrl). COMBAT: HV, COVID_MILD, COVID_SEV and
-         COVID_CRIT cells of data.combat; condition column 'Source'.
+         Parse-PBMC: one dataset per CV fold (the three held-out donors) and one with all donors ("nofold");
+         condition column 'treatment' (cytokine / PBS). --target train: the held-out donors' cytokine cells
+         and the training donors' PBS cells (parse_runs_trainctrl).
+         COMBAT: HV, COVID_MILD, COVID_SEV and COVID_CRIT cells of data.combat; condition column 'Source'.
          -> {cellot.datasets}/{run}_data_pca100.h5ad (COMBAT: combat_pca100.h5ad) and {run}_pca_model_100d.pkl
 export   trained CellOT maps (config.yaml + cache/model.pt) and their PCA model -> one cytap CellOT file per run,
          {cellot.maps}/{run}_cellot.pt, used by cytap.predict (02_inference), eval_control_references.py and
@@ -17,8 +17,8 @@ python 05_cellot/cellot_maps.py export parse
 python 05_cellot/cellot_maps.py export parse --target train --runs 1 2 3 4
 python 05_cellot/cellot_maps.py export combat
 
-The published maps are on Zenodo (results/cellot/); the published PCA models were fitted before random_state was fixed, so
-retraining gives similar but not identical maps.
+The published maps are on Zenodo (results/cellot/). Their PCA models were fitted before random_state was fixed,
+so retraining gives similar but not identical maps.
 """
 import argparse
 import pickle

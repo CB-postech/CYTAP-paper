@@ -7,7 +7,7 @@ of the cognate receptors of all candidate cytokines (Parse-PBMC_cytokine_recepto
 Receptor activity = number of response genes with interaction FDR < 0.05 (numSigI1); cytokine score =
 max over its receptors; candidates ranked by score (ties ranked conservatively); true_rank = rank of X.
 Cells are downsampled to <= 200 per donor x cell type x condition (seed 0); conditions with < 30 cells
-in either group are skipped. Condition labels passed to R are made formula-safe (e.g. 4-1BBL -> X4_1BBL).
+in either group are skipped.
 
 Output (ContactTracing_output/): downsampled/*.h5ad, interaction_test/, run_log.csv,
 contacttracing_true_rank.csv, ct_pool_by_condition.csv (pool = cytokines with a tested receptor)
