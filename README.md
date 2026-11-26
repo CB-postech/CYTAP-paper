@@ -63,7 +63,7 @@ The State SE-600M model ([Arc Institute](https://github.com/ArcInstitute/state))
 | `models.tar` | CYTAP model (`models/`) and COMBAT CellOT maps (`results/cellot/`); both also downloaded automatically by `cytap` |
 | `query_slim.tar` | query datasets with cell metadata and State embeddings, no expression (`data/query_slim/`) |
 | `inference_slim.tar` | CYTAP predictions (`results/inference_slim/`) |
-| `results.tar.gz` | result tables behind the figures, incl. the benchmark outputs (`results/`); curated tables (`data/reference/`); State licence files |
+| `results.tar.gz` | result tables behind the figures, incl. the benchmark outputs (`results/`); curated tables (`data/reference/`); State license files |
 
 With these files the result tables can be checked directly, and CYTAP can be rerun on the query datasets (set
 `data.*` in `config/paths.yaml` to `data/query_slim/`). Analyses that need gene expression start from the original datasets.
